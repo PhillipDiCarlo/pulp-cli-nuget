@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install lint tools
+        run: pip install ruff
+      - name: ruff check
+        run: ruff check pulpcore pulp-glue-nuget/pulp_glue tests
+      - name: ruff format
+        run: ruff format --check pulpcore pulp-glue-nuget/pulp_glue tests
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install packages
+        run: |
+          pip install ./pulp-glue-nuget .
+          pip install pytest
+      - name: Smoke tests (plugin mounts, commands parse)
+        run: pytest tests -q
+      - name: CLI help renders
+        run: |
+          pulp nuget --help
+          pulp nuget repository sync --help
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build distributions
+        run: |
+          pip install build twine
+          python -m build .
+          python -m build pulp-glue-nuget
+          twine check dist/* pulp-glue-nuget/dist/*
