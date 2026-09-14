@@ -10,7 +10,7 @@ def test_nuget_group_mounts_and_help_renders():
     runner = CliRunner()
     result = runner.invoke(main, ["nuget", "--help"], catch_exceptions=False)
     assert result.exit_code == 0
-    for group in ("repository", "remote", "distribution", "content"):
+    for group in ("repository", "remote", "distribution", "content", "acs"):
         assert group in result.output
 
 
@@ -25,6 +25,9 @@ def test_subcommand_help_renders():
         ["nuget", "remote", "create", "--help"],
         ["nuget", "distribution", "create", "--help"],
         ["nuget", "content", "upload", "--help"],
+        ["nuget", "acs", "create", "--help"],
+        ["nuget", "acs", "refresh", "--help"],
+        ["nuget", "acs", "path", "add", "--help"],
     ):
         result = runner.invoke(main, args, catch_exceptions=False)
         assert result.exit_code == 0, args

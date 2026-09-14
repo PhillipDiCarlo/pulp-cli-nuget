@@ -1,5 +1,6 @@
 from pulp_glue.common.context import (
     PluginRequirement,
+    PulpACSContext,
     PulpContentContext,
     PulpDistributionContext,
     PulpRemoteContext,
@@ -10,6 +11,17 @@ from pulp_glue.common.i18n import get_translation
 
 translation = get_translation(__package__)
 _ = translation.gettext
+
+
+class PulpNugetACSContext(PulpACSContext):
+    PLUGIN = "nuget"
+    RESOURCE_TYPE = "nuget"
+    ENTITY = _("nuget ACS")
+    ENTITIES = _("nuget ACSes")
+    HREF = "nuget_nuget_alternate_content_source_href"
+    ID_PREFIX = "acs_nuget_nuget"
+    NEEDS_PLUGINS = [PluginRequirement("nuget")]
+    CAPABILITIES = {"roles": [PluginRequirement("nuget")]}
 
 
 class PulpNugetContentContext(PulpContentContext):

@@ -18,6 +18,9 @@ pulp nuget distribution create --name foo --base-path foo --repository foo
 pulp nuget content upload --file my.package.1.0.0.nupkg --repository foo
 pulp nuget content --type symbol-package upload --file my.package.1.0.0.snupkg --repository foo
 pulp nuget content list --package-id serilog
+pulp nuget remote create --name mirror --url https://mirror.example.com/v3/index.json     --policy on_demand --includes '["*"]'
+pulp nuget acs create --name mirror --remote mirror
+pulp nuget acs refresh --name mirror
 ```
 
 The repository ships two packages:
