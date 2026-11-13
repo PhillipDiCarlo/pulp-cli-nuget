@@ -27,6 +27,7 @@ def test_subcommand_help_renders():
         ["nuget", "repository", "content", "modify", "--help"],
         ["nuget", "remote", "create", "--help"],
         ["nuget", "distribution", "create", "--help"],
+        ["nuget", "distribution", "update", "--help"],
         ["nuget", "content", "upload", "--help"],
         ["nuget", "acs", "create", "--help"],
         ["nuget", "acs", "refresh", "--help"],

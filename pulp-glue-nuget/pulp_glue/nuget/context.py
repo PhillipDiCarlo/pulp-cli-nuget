@@ -1,4 +1,5 @@
 from pulp_glue.common.context import (
+    EntityDefinition,
     PluginRequirement,
     PulpACSContext,
     PulpContentContext,
@@ -7,6 +8,7 @@ from pulp_glue.common.context import (
     PulpRepositoryContext,
     PulpRepositoryVersionContext,
 )
+from pulp_glue.common.exceptions import PulpException
 from pulp_glue.common.i18n import get_translation
 
 translation = get_translation(__package__)
@@ -56,6 +58,26 @@ class PulpNugetDistributionContext(PulpDistributionContext):
     NEEDS_PLUGINS = [PluginRequirement("nuget")]
     CAPABILITIES = {"roles": [PluginRequirement("nuget")]}
     NULLABLES = PulpDistributionContext.NULLABLES | {"repository", "content_guard"}
+
+    def preprocess_entity(self, body: EntityDefinition, partial: bool = False) -> EntityDefinition:
+        body = super().preprocess_entity(body, partial=partial)
+        # The server takes either "repository" (serve its latest version) or
+        # "repository_version" (pin one), so setting one has to clear the other.
+        version = body.pop("version", None)
+        if version is not None:
+            repository_href = body.pop("repository", None)
+            if repository_href is None and partial:
+                repository_href = self.entity.get("repository")
+                if repository_href is None and self.entity.get("repository_version"):
+                    # Already pinned: stay on the same repository.
+                    repository_href = self.entity["repository_version"].rsplit("versions/", 1)[0]
+            if repository_href is None:
+                raise PulpException(_("--version requires a repository; specify --repository."))
+            body["repository_version"] = f"{repository_href}versions/{version}/"
+            body["repository"] = None
+        elif "repository" in body:
+            body["repository_version"] = None
+        return body
 
 
 class PulpNugetRemoteContext(PulpRemoteContext):
