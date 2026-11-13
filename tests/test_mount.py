@@ -22,6 +22,9 @@ def test_subcommand_help_renders():
     for args in (
         ["nuget", "repository", "--help"],
         ["nuget", "repository", "sync", "--help"],
+        ["nuget", "repository", "content", "add", "--help"],
+        ["nuget", "repository", "content", "remove", "--help"],
+        ["nuget", "repository", "content", "modify", "--help"],
         ["nuget", "remote", "create", "--help"],
         ["nuget", "distribution", "create", "--help"],
         ["nuget", "content", "upload", "--help"],
