@@ -10,8 +10,8 @@ from pulp_cli.generic import (
     label_command,
     label_select_option,
     list_command,
-    lookup_callback,
     name_option,
+    option_group,
     pass_repository_context,
     pulp_group,
     pulp_labels_option,
@@ -27,7 +27,11 @@ from pulp_cli.generic import (
     update_command,
     version_command,
 )
-from pulp_glue.common.context import EntityFieldDefinition, PulpRemoteContext
+from pulp_glue.common.context import (
+    EntityFieldDefinition,
+    PulpContentContext,
+    PulpRemoteContext,
+)
 from pulp_glue.common.i18n import get_translation
 from pulp_glue.nuget.context import (
     PulpNugetContentContext,
@@ -76,19 +80,23 @@ update_options = [
     pulp_labels_option,
 ]
 create_options = update_options + [click.option("--name", required=True)]
+
+
+def _content_callback(ctx: click.Context, value: dict[str, t.Any]) -> None:
+    """Look the content unit up by package id and version, unless --href selects it."""
+    if ctx.get_parameter_source("href") == click.core.ParameterSource.COMMANDLINE:
+        raise click.UsageError(_("--href cannot be combined with --package-id and --version."))
+    entity_ctx = ctx.find_object(PulpContentContext)
+    assert entity_ctx is not None
+    entity_ctx.entity = value
+
+
 # A content unit is identified by its href, or by package id and version together.
 content_options = [
-    pulp_option(
-        "--package-id",
-        callback=lookup_callback("package_id"),
-        expose_value=False,
-        help=_("Package id of the {entity} (case-insensitive); use together with --version."),
-    ),
-    pulp_option(
-        "--version",
-        callback=lookup_callback("version"),
-        expose_value=False,
-        help=_("NuGet-normalized version of the {entity}; use together with --package-id."),
+    pulp_option("--package-id", help=_("Package id of the {entity} (case-insensitive).")),
+    pulp_option("--version", help=_("NuGet-normalized version of the {entity}.")),
+    option_group(
+        "content", ["package_id", "version"], callback=_content_callback, expose_value=False
     ),
     href_option,
 ]
