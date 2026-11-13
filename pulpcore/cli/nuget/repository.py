@@ -1,17 +1,21 @@
 import typing as t
 
 import click
+import schema as s
 from pulp_cli.generic import (
     create_command,
+    create_content_json_callback,
     destroy_command,
     href_option,
     label_command,
     label_select_option,
     list_command,
+    lookup_callback,
     name_option,
     pass_repository_context,
     pulp_group,
     pulp_labels_option,
+    pulp_option,
     repository_content_command,
     repository_href_option,
     repository_lookup_option,
@@ -46,6 +50,8 @@ remote_option = resource_option(
     help=_("Remote used for syncing in the form '[[<plugin>:]<resource_type>:]<name>' or by href."),
 )
 
+CONTENT_LIST_SCHEMA = s.Schema([{"package_id": str, "version": str}])
+
 
 @pulp_group()
 @type_option(choices={"nuget": PulpNugetRepositoryContext})
@@ -70,8 +76,42 @@ update_options = [
     pulp_labels_option,
 ]
 create_options = update_options + [click.option("--name", required=True)]
-content_hrefs_options = [
-    click.option("--href", help=_("Href of the nuget package/symbol package to use"))
+# A content unit is identified by its href, or by package id and version together.
+content_options = [
+    pulp_option(
+        "--package-id",
+        callback=lookup_callback("package_id"),
+        expose_value=False,
+        help=_("Package id of the {entity} (case-insensitive); use together with --version."),
+    ),
+    pulp_option(
+        "--version",
+        callback=lookup_callback("version"),
+        expose_value=False,
+        help=_("NuGet-normalized version of the {entity}; use together with --package-id."),
+    ),
+    href_option,
+]
+content_json_callback = create_content_json_callback(None, schema=CONTENT_LIST_SCHEMA)
+modify_options = [
+    pulp_option(
+        "--add-content",
+        callback=content_json_callback,
+        help=_(
+            """JSON string with a list of {entities} to add to the repository.
+    Each {entity} must contain the following keys: "package_id", "version".
+    The argument prefixed with the '@' can be the path to a JSON file with a list of {entities}."""
+        ),
+    ),
+    pulp_option(
+        "--remove-content",
+        callback=content_json_callback,
+        help=_(
+            """JSON string with a list of {entities} to remove from the repository.
+    Each {entity} must contain the following keys: "package_id", "version".
+    The argument prefixed with the '@' can be the path to a JSON file with a list of {entities}."""
+        ),
+    ),
 ]
 
 repository.add_command(
@@ -96,8 +136,11 @@ repository.add_command(
             "package": PulpNugetContentContext,
             "symbol-package": PulpNugetSymbolPackageContentContext,
         },
+        add_decorators=content_options,
+        remove_decorators=content_options,
+        modify_decorators=modify_options,
         base_default_plugin="nuget",
-        base_default_type="package",
+        base_default_type="nuget",
     )
 )
 
