@@ -11,7 +11,8 @@ requires-python = ">=3.11"
 license = "GPL-2.0-or-later"
 authors = [{ name = "Phillip DiCarlo", email = "sasha-1221@hotmail.com" }]
 dependencies = [
-  "pulp-cli>=0.34.0,<0.42",
+  # pulp_cli.generic.content_filter_options first appeared in pulp-cli 0.39.0.
+  "pulp-cli>=0.39.0,<0.42",
   "pulp-glue-nuget==0.1.0.dev",
 ]
 classifiers = [

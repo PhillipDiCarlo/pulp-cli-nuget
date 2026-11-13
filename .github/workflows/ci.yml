@@ -44,6 +44,22 @@ jobs:
           pulp nuget --help
           pulp nuget repository sync --help
 
+  test-lowerbounds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install packages at the declared pulp-cli lower bound
+        run: |
+          pip install pulp-cli==0.39.0 pulp-glue==0.39.0
+          pip install ./pulp-glue-nuget .
+          pip install pytest
+          pip list | grep -i -E "^pulp-(cli|glue) "
+      - name: Smoke tests (plugin mounts, commands parse)
+        run: pytest tests -q
+
   build:
     runs-on: ubuntu-latest
     steps:
