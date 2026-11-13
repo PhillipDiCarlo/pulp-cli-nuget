@@ -15,6 +15,8 @@ pulp nuget remote create --name upstream --url https://api.nuget.org/v3/index.js
     --policy on_demand --includes '["Serilog [3.0,)", "Newtonsoft.Json"]'
 pulp nuget repository sync --name foo --remote upstream
 pulp nuget distribution create --name foo --base-path foo --repository foo
+pulp nuget distribution update --name foo --version 3    # pin a repository version
+pulp nuget distribution update --name foo --repository foo    # follow the latest again
 pulp nuget content upload --file my.package.1.0.0.nupkg --repository foo
 pulp nuget content --type symbol-package upload --file my.package.1.0.0.snupkg --repository foo
 pulp nuget content list --package-id serilog

@@ -12,6 +12,7 @@ from pulp_cli.generic import (
     name_option,
     pulp_group,
     pulp_labels_option,
+    pulp_option,
     resource_option,
     role_command,
     show_command,
@@ -32,8 +33,8 @@ repository_option = resource_option(
     context_table={"nuget:nuget": PulpNugetRepositoryContext},
     href_pattern=PulpNugetRepositoryContext.HREF_PATTERN,
     help=_(
-        "Repository whose latest version is served by the distribution."
-        " Specified as '[[<plugin>:]<type>:]<name>' or as href."
+        "Repository whose latest version is served by the distribution, unless --version"
+        " pins one. Specified as '[[<plugin>:]<type>:]<name>' or as href."
     ),
 )
 
@@ -48,6 +49,14 @@ lookup_options = [href_option, name_option, distribution_lookup_option]
 nested_lookup_options = [distribution_lookup_option]
 update_options = [
     repository_option,
+    pulp_option(
+        "--version",
+        type=int,
+        help=_(
+            "Repository version number to serve instead of the repository's latest version."
+            " Give --repository without --version to follow the latest version again."
+        ),
+    ),
     content_guard_option,
     pulp_labels_option,
 ]
