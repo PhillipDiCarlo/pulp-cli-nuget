@@ -34,3 +34,22 @@ def test_subcommand_help_renders():
     ):
         result = runner.invoke(main, args, catch_exceptions=False)
         assert result.exit_code == 0, args
+
+
+def test_content_selectors_cannot_be_mixed():
+    """--href and --package-id/--version are alternatives; the pair must be complete."""
+    from pulp_cli import load_plugins, main
+
+    load_plugins()
+    runner = CliRunner()
+    base = ["--base-url", "http://localhost:1", "nuget", "repository", "content"]
+    href = "/pulp/api/v3/content/nuget/packages/0123/"
+    for command in ("add", "remove"):
+        for selector in (
+            ["--href", href, "--package-id", "serilog", "--version", "4.0.0"],
+            ["--package-id", "serilog"],
+            ["--version", "4.0.0"],
+        ):
+            # Usage errors are raised before anything talks to the server.
+            result = runner.invoke(main, base + [command, "--repository", "foo"] + selector)
+            assert result.exit_code == 2, (command, selector, result.output)
